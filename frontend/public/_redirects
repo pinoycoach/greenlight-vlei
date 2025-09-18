@@ -1,1 +1,2 @@
 /api/*  https://greenlight-vlei.onrender.com/:splat  200
+/pdf/*  https://greenlight-vlei.onrender.com/pdf/:splat  200
