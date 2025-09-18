@@ -19,6 +19,9 @@ export async function createPdf(vc: any){
   doc.moveDown();
   doc.fontSize(10).text('Verify this artifact via the TrustClick verify endpoint.', { oblique: true });
   doc.end();
-  await new Promise(res => stream.on('finish', res));
+  await new Promise<void>((resolve, reject) => {
+  stream.on('finish', () => resolve());
+  stream.on('error', (e) => reject(e));
+});
   return id;
 }
