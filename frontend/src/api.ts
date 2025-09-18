@@ -1,0 +1,3 @@
+export async function searchLEI(q: string){ const r = await fetch(`/api/search-lei?q=${encodeURIComponent(q)}`); if(!r.ok) throw new Error('Search failed'); return r.json(); }
+export async function verifyPresentation(vp: any){ const r = await fetch('/api/verify-presentation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(vp)}); return r.json(); }
+export async function issueKYB(leiRecord:any, presentation:any){ const r = await fetch('/api/issue-kyb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({leiRecord,presentation})}); return r.json(); }
