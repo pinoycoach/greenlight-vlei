@@ -1,5 +1,5 @@
 // A) if tsconfig has "esModuleInterop": true
-import QRCode from 'qrcode';
+import * as QRCode from 'qrcode';   // <- preferred (works without esModuleInterop)
 // B) otherwise, use this instead:
 // import * as QRCode from 'qrcode';
 
