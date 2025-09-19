@@ -29,6 +29,7 @@ export async function createPdf(vc: any, artifactId: string) {
  const publicBase = process.env.PUBLIC_BASE_URL || 'https://www.greenlightkyb.com';
 const longUrl  = `${publicBase}/api/verify-artifact?id=${encodeURIComponent(artifactId)}&view=html`;
 const shortUrl = `${publicBase}/v/${encodeURIComponent(artifactId)}`;
+const verifyUrl = longUrl;  // <-- add this line
 
 const qrSize = 128;
 const qrBuf  = await QRCode.toBuffer(longUrl, { margin: 1, scale: 6 });
@@ -59,5 +60,5 @@ doc.fillColor('black');
     stream.on('error', reject);
   });
 
-  return { pdfId, file, verifyUrl };
+return { pdfId, file, verifyUrl };
 }
