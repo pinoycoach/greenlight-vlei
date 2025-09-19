@@ -14,7 +14,8 @@
     "jose": "^5.9.3",
     "node-fetch": "^3.3.2",
     "pdfkit": "^0.14.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
   "@types/cors": "^2.8.17",
