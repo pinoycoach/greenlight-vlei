@@ -12,7 +12,7 @@ export async function createPdf(vc: any, artifactId: string) {
   const stream = fs.createWriteStream(file);
   doc.pipe(stream);
 
-  // --- your content ---
+  // --- Contents you already had ---
   doc.fontSize(18).text('Greenlight vLEI — KYB Decision Credential', { underline: true });
   doc.moveDown();
   doc.fontSize(12).text(`Issuer: ${vc.issuer}`);
@@ -25,7 +25,7 @@ export async function createPdf(vc: any, artifactId: string) {
   doc.moveDown();
   doc.fontSize(10).text('Verify this artifact via the TrustClick verify endpoint.', { oblique: true });
 
-  // --- TrustClick QR ---
+  // --- TrustClick QR (points to this artifact) ---
   const publicBase = process.env.PUBLIC_BASE_URL || 'https://www.greenlightkyb.com';
   const verifyUrl = `${publicBase}/api/verify-artifact?id=${encodeURIComponent(artifactId)}&view=html`;
 
@@ -38,9 +38,11 @@ export async function createPdf(vc: any, artifactId: string) {
   const qrY = top;
 
   doc.image(qrBuf, qrX, qrY, { width: qrSize, height: qrSize });
+
   doc.fontSize(10).fillColor('#555');
   doc.text('Scan to verify (✅ Valid / ❌ Invalid)', qrX, qrY + qrSize + 6, { width: qrSize, align: 'center' });
-  doc.fillColor('#3b82f6').text(verifyUrl, qrX, qrY + qrSize + 22, { width: qrSize, align: 'center' });
+  doc.fillColor('#3b82f6');
+  doc.text(verifyUrl, qrX, qrY + qrSize + 22, { width: qrSize, align: 'center' });
   doc.fillColor('black');
 
   doc.end();
