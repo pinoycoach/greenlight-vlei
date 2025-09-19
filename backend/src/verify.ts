@@ -2,12 +2,31 @@ import { createHash } from 'crypto';
 
 export const store = {
   map: new Map<string, any>(),
-  save(obj: any, pdfId: string){
-    const id = createHash('sha256').update(JSON.stringify(obj)+Date.now()).digest('hex').slice(0,16);
-    this.map.set(id, { ...obj, pdfId });
+
+  // Save the artifact first (pdfId is optional here)
+  save(obj: any, pdfId?: string) {
+    const id = createHash('sha256')
+      .update(JSON.stringify(obj) + Date.now())
+      .digest('hex')
+      .slice(0, 16);
+
+    const record: any = { ...obj };
+    if (pdfId) record.pdfId = pdfId;
+
+    this.map.set(id, record);
     return id;
+  },
+
+  // Later, attach the generated pdfId to this artifact
+  setPdf(id: string, pdfId: string) {
+    const rec = this.map.get(id);
+    if (rec) {
+      rec.pdfId = pdfId;
+      this.map.set(id, rec);
+    }
   }
 };
+
 
 const TRUST = { rootIssuer: 'did:gleif:ROOT', qvis: ['did:qvi:example:TOPPAN', 'did:qvi:example:CFCA'] };
 const REVOKED = new Set<string>(['urn:uuid:role-cred-revoked']);
