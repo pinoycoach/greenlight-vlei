@@ -68,4 +68,11 @@ app.get('/pdf/:id', (req, res) => {
 });
 
 const port = Number(process.env.PORT || 8787);
+// Short, human URL for certificates → redirects to TrustClick HTML view
+app.get('/v/:id', (req, res) => {
+  const id = String(req.params.id || '').trim();
+  if (!id) return res.status(400).send('missing id');
+  res.redirect(302, `/api/verify-artifact?id=${encodeURIComponent(id)}&view=html`);
+});
+
 app.listen(port, () => console.log(`API on http://localhost:${port}`));
