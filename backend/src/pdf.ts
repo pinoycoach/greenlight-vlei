@@ -35,37 +35,64 @@ export async function createPdf(vc: any, artifactId: string) {
   doc.fontSize(10).text('Verify this artifact via the TrustClick verify endpoint.', { oblique: true });
 
   // ---- URLs ----
-  const publicBase = process.env.PUBLIC_BASE_URL || 'https://www.greenlightkyb.com';
-  const longUrl  = `${publicBase}/api/verify-artifact?id=${encodeURIComponent(artifactId)}&view=html`;
-  const shortUrl = `${publicBase}/v/${encodeURIComponent(artifactId)}`;
-  const verifyUrl = longUrl; // returned to caller
+// ---- URLs ----
+const publicBase = process.env.PUBLIC_BASE_URL || 'https://www.greenlightkyb.com';
+const longUrl  = `${publicBase}/api/verify-artifact?id=${encodeURIComponent(artifactId)}&view=html`;
+const shortUrl = `${publicBase}/v/${encodeURIComponent(artifactId)}`;
+const verifyUrl = longUrl; // returned
 
-  // ---- QR code generation & placement ----
-  const qrSize = 128; // points
-  const qrBuf  = await QRCode.toBuffer(longUrl, { margin: 1, scale: 6 });
+// ---- QR placement ----
+const qrSize = 128; // points
+const qrBuf  = await QRCode.toBuffer(longUrl, { margin: 1, scale: 6 });
 
-  const pageW = doc.page.width;
-  const { right, top } = doc.page.margins;
-  const qrX = pageW - right - qrSize;
-  const qrY = top;
+const pageW = doc.page.width;
+const { right, top } = doc.page.margins;
 
-  // draw QR and make it clickable
-  doc.image(qrBuf, qrX, qrY, { width: qrSize, height: qrSize });
-  doc.link(qrX, qrY, qrSize, qrSize, longUrl);
+// right column “card” to keep things tidy
+const pad     = 10;
+const cardW   = qrSize + pad * 2;
+const cardH   = qrSize + 40 + pad * 2; // QR + caption + link + padding
+const cardX   = pageW - right - cardW; // align with right margin
+const cardY   = top;
 
-  // caption + short, clickable URL
-  doc.fontSize(10).fillColor('#555')
-     .text('Scan to verify (Valid / Invalid)', qrX, qrY + qrSize + 6, { width: qrSize, align: 'center' });
+// 1) draw a white card so body text never bleeds under the QR
+doc.save();
+doc.fillColor('#FFFFFF').rect(cardX, cardY, cardW, cardH).fill();
+doc.restore();
 
-  doc.fillColor('#2563EB')
-     .text(shortUrl, qrX, qrY + qrSize + 22, {
-       width: qrSize,
-       align: 'center',
-       link: longUrl,            // clicking the text opens the full long URL
-       underline: true
-     });
+// 2) draw the QR (centered inside the card)
+const qrX = cardX + pad;
+const qrY = cardY + pad;
 
-  doc.fillColor('black');
+doc.image(qrBuf, qrX, qrY, { width: qrSize, height: qrSize });
+// Make the QR itself clickable
+doc.link(qrX, qrY, qrSize, qrSize, longUrl);
+
+// 3) caption + short link (both centered and tidy)
+const textBoxX = cardX + pad;         // same as qrX
+const textBoxW = qrSize;              // same width as the QR
+let textY = qrY + qrSize + 6;
+
+doc.fontSize(9).fillColor('#555')
+   .text('Scan to verify (Valid / Invalid)', textBoxX, textY, {
+     width: textBoxW,
+     align: 'center',
+     lineBreak: false
+   });
+
+textY += 16;
+doc.fontSize(9).fillColor('#2563EB')
+   // show short URL but make click open the full URL
+   .text(shortUrl, textBoxX, textY, {
+     width: textBoxW,
+     align: 'center',
+     underline: true,
+     link: longUrl,
+     lineBreak: false
+   });
+
+doc.fillColor('black');
+
 
   // ---- finalize ----
   doc.end();
