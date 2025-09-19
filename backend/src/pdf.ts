@@ -26,32 +26,28 @@ export async function createPdf(vc: any, artifactId: string) {
   doc.fontSize(10).text('Verify this artifact via the TrustClick verify endpoint.', { oblique: true });
 
   // --- TrustClick QR (points to this artifact) ---
- const publicBase = process.env.PUBLIC_BASE_URL || 'https://www.greenlightkyb.com';
+const publicBase = process.env.PUBLIC_BASE_URL || 'https://www.greenlightkyb.com';
 const longUrl  = `${publicBase}/api/verify-artifact?id=${encodeURIComponent(artifactId)}&view=html`;
 const shortUrl = `${publicBase}/v/${encodeURIComponent(artifactId)}`;
-const verifyUrl = longUrl;  // <-- add this line
+const verifyUrl = longUrl;
 
-const qrSize = 128;
-const qrBuf  = await QRCode.toBuffer(longUrl, { margin: 1, scale: 6 });
-
-const pageW = doc.page.width;
-const { right, top } = doc.page.margins;
-const qrX = pageW - right - qrSize;
-const qrY = top;
-
-// Draw QR
+// draw QR
 doc.image(qrBuf, qrX, qrY, { width: qrSize, height: qrSize });
-// Make the QR area itself clickable
+// make the QR area clickable
 doc.link(qrX, qrY, qrSize, qrSize, longUrl);
 
-// Caption (avoid emojis; many PDF fonts don’t support them cleanly)
+// caption
 doc.fontSize(10).fillColor('#555')
    .text('Scan to verify (Valid / Invalid)', qrX, qrY + qrSize + 6, { width: qrSize, align: 'center' });
 
-// Short, clickable URL (won’t wrap weirdly)
+// show SHORT text, but click goes to LONG url
 doc.fillColor('#2563EB')
-   .text(shortUrl, qrX, qrY + qrSize + 22, { width: qrSize, align: 'center', link: shortUrl, underline: true });
-
+   .text(shortUrl, qrX, qrY + qrSize + 22, {
+     width: qrSize,
+     align: 'center',
+     link: longUrl,       // <= click target
+     underline: true
+   });
 doc.fillColor('black');
 
   doc.end();
