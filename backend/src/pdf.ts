@@ -26,24 +26,32 @@ export async function createPdf(vc: any, artifactId: string) {
   doc.fontSize(10).text('Verify this artifact via the TrustClick verify endpoint.', { oblique: true });
 
   // --- TrustClick QR (points to this artifact) ---
-  const publicBase = process.env.PUBLIC_BASE_URL || 'https://www.greenlightkyb.com';
-  const verifyUrl = `${publicBase}/api/verify-artifact?id=${encodeURIComponent(artifactId)}&view=html`;
+ const publicBase = process.env.PUBLIC_BASE_URL || 'https://www.greenlightkyb.com';
+const longUrl  = `${publicBase}/api/verify-artifact?id=${encodeURIComponent(artifactId)}&view=html`;
+const shortUrl = `${publicBase}/v/${encodeURIComponent(artifactId)}`;
 
-  const qrSize = 128;
-  const qrBuf = await QRCode.toBuffer(verifyUrl, { margin: 1, scale: 6 });
+const qrSize = 128;
+const qrBuf  = await QRCode.toBuffer(longUrl, { margin: 1, scale: 6 });
 
-  const pageW = doc.page.width;
-  const { right, top } = doc.page.margins;
-  const qrX = pageW - right - qrSize;
-  const qrY = top;
+const pageW = doc.page.width;
+const { right, top } = doc.page.margins;
+const qrX = pageW - right - qrSize;
+const qrY = top;
 
-  doc.image(qrBuf, qrX, qrY, { width: qrSize, height: qrSize });
+// Draw QR
+doc.image(qrBuf, qrX, qrY, { width: qrSize, height: qrSize });
+// Make the QR area itself clickable
+doc.link(qrX, qrY, qrSize, qrSize, longUrl);
 
-  doc.fontSize(10).fillColor('#555');
-  doc.text('Scan to verify (✅ Valid / ❌ Invalid)', qrX, qrY + qrSize + 6, { width: qrSize, align: 'center' });
-  doc.fillColor('#3b82f6');
-  doc.text(verifyUrl, qrX, qrY + qrSize + 22, { width: qrSize, align: 'center' });
-  doc.fillColor('black');
+// Caption (avoid emojis; many PDF fonts don’t support them cleanly)
+doc.fontSize(10).fillColor('#555')
+   .text('Scan to verify (Valid / Invalid)', qrX, qrY + qrSize + 6, { width: qrSize, align: 'center' });
+
+// Short, clickable URL (won’t wrap weirdly)
+doc.fillColor('#2563EB')
+   .text(shortUrl, qrX, qrY + qrSize + 22, { width: qrSize, align: 'center', link: shortUrl, underline: true });
+
+doc.fillColor('black');
 
   doc.end();
   await new Promise<void>((resolve, reject) => {
