@@ -33,29 +33,26 @@ app.post('/issue-kyb', async (req, res) => {
   // 1) Build the KYB Decision VC
   const issued = await issueKYB(leiRecord, presentation, policyId);
 
-  // 2) Persist the artifact FIRST to obtain a stable artifact id
-  //    (You’ll add store.setPdf below; for now just save the VC)
-  const id = store.save(issued);              // <-- returns artifact id
+  // 2) Save first to get an artifact id
+  const id = store.save(issued);
 
-  // 3) Create the PDF using the artifact id so the QR/URL point to this id
-  //    createPdf(vc, artifactId) -> { pdfId, file, verifyUrl }
+  // 3) Create the PDF using that id (so QR links to /api/verify-artifact?id=<id>)
   const { pdfId, file, verifyUrl } = await createPdf(issued, id);
 
-  // 4) Attach the pdfId to the record (so /pdf/:id works for this artifact)
-  if (typeof store.setPdf === 'function') {
-    store.setPdf(id, pdfId);
-  }
+  // 4) Attach the pdfId to the stored record
+  store.setPdf(id, pdfId);
 
-  // 5) Respond to the client
+  // 5) Respond
   res.json({
     ok: true,
-    id,                    // artifact id for /api/verify-artifact?id=...
+    id,                  // the artifact id for verification
     issued,
     pdfId,
     pdfUrl: `/pdf/${pdfId}`,
-    verifyUrl              // nice to show to users, already contains &view=html
+    verifyUrl           // handy link you can show/QR
   });
 });
+
 
 app.get('/verify-artifact', (req, res) => {
   const id = String(req.query.id || '');
